@@ -65,18 +65,6 @@
         <groupId>org.springframework.ai</groupId>
         <artifactId>spring-ai-test</artifactId>
     </dependency>
-
-    <!-- Ollama LLM provider -->
-    <dependency>
-        <groupId>org.springframework.ai</groupId>
-        <artifactId>spring-ai-ollama</artifactId>
-    </dependency>
-
-    <!-- OpenAI LLM provider -->
-    <dependency>
-        <groupId>org.springframework.ai</groupId>
-        <artifactId>spring-ai-openai</artifactId>
-    </dependency>
   </dependencies>
 
   <build>

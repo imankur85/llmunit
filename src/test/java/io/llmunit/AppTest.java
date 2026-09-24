@@ -1,27 +1,28 @@
 package io.llmunit;
 
 import io.llmunit.annotations.LLMTest;
+import io.llmunit.assertion.LLMAssert;
+import io.llmunit.eval.EvalInput;
+import io.llmunit.eval.EvalResult;
+import io.llmunit.eval.FactCheckingEval;
 import io.llmunit.extension.LLMTestExtension;
-import org.junit.jupiter.api.BeforeAll;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import io.llmunit.mock.EvalResultStore;
+import io.llmunit.support.StubChatModel;
+import java.util.List;
 
 /**
- * Offline smoke test verifying that an `@LLMTest` runs without a live model.
+ * Offline smoke test verifying that an `@LLMTest` replays recorded evaluations without a live model.
  */
 public class AppTest {
 
-    @BeforeAll
-    static void setUp() {
-        LLMTestExtension.registerInput("question", "What is 2+2?");
-    }
+    @LLMTest(offline = true)
+    void offlineTestReplaysWithoutLLM() {
+        EvalInput input = new EvalInput("q", "a", List.of());
+        LLMTestExtension.recorder().store().record(
+            EvalResultStore.key("fact_checking", input), new EvalResult("fact_checking", 1.0, 0.5, "ok"));
 
-    @LLMTest(
-        prompt = "You are a helpful assistant. Answer the following question: {{question}}",
-        expected = "You are a helpful assistant. Answer the following question: {{question}}",
-        offline = true
-    )
-    void offlineTestRunsWithoutLLM(String question) {
-        assertNotNull(question);
+        LLMAssert.assertThatLLM("a")
+            .withQuery("q")
+            .passesEval(new FactCheckingEval(new StubChatModel("irrelevant").chatClientBuilder()));
     }
 }

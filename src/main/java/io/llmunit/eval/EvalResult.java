@@ -1,10 +1,10 @@
-package io.llmunit.context;
+package io.llmunit.eval;
 
 /**
- * Immutable outcome of a single metric evaluation: the score versus its threshold,
- * human-readable feedback, and whether the metric passed.
+ * Immutable outcome of a single evaluation: the score versus its threshold, human-readable
+ * feedback, and whether the metric passed.
  */
-public class EvaluationResult {
+public final class EvalResult {
 
     private final String metricName;
     private final double score;
@@ -12,8 +12,8 @@ public class EvaluationResult {
     private final String feedback;
     private final boolean passed;
 
-    public EvaluationResult(String metricName, double score, double threshold, String feedback) {
-        this.metricName = metricName;
+    public EvalResult(String metricName, double score, double threshold, String feedback) {
+        this.metricName = metricName == null ? "" : metricName;
         this.score = score;
         this.threshold = threshold;
         this.feedback = feedback == null ? "" : feedback;
@@ -42,7 +42,7 @@ public class EvaluationResult {
 
     @Override
     public String toString() {
-        return "EvaluationResult{metricName='" + metricName + "', score=" + score
+        return "EvalResult{metricName='" + metricName + "', score=" + score
             + ", threshold=" + threshold + ", passed=" + passed + ", feedback='" + feedback + "'}";
     }
 }
