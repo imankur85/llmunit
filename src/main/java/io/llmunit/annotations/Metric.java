@@ -9,6 +9,11 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(Metrics.class)
+/**
+ * Repeatable annotation attaching a named metric to an `@LLMTest` method.
+ *
+ * @see <a href="https://deepeval.com/docs/metrics-introduction">deepeval metrics</a>
+ */
 public @interface Metric {
 
     MetricEnum metric();

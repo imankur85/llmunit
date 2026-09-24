@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Thread-safe store of prompt-to-response recordings used for offline replay in tests.
+ */
 public class MockResponseStore {
 
     private static final MockResponseStore INSTANCE = new MockResponseStore();

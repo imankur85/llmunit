@@ -6,6 +6,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Renders `{{placeholder}}` templates with resolved test parameters and extracts the
+ * placeholder names for parameter resolution.
+ */
 public final class PromptTemplateRenderer {
 
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{\\s*([a-zA-Z0-9_.-]+)\\s*}}");

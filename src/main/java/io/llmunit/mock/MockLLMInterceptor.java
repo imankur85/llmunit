@@ -4,6 +4,10 @@ import io.llmunit.model.LLMProvider;
 import java.util.Optional;
 import org.springframework.ai.chat.model.ChatModel;
 
+/**
+ * {@code LLMProvider} wrapper that replays recorded responses when available and records new
+ * ones from the delegate provider.
+ */
 public class MockLLMInterceptor implements LLMProvider {
 
     private final LLMProvider delegate;

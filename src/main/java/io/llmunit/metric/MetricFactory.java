@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.ai.chat.client.ChatClient;
 
+/**
+ * Builds the list of metrics to evaluate for a test method from its assertion annotations
+ * and repeated `@Metric` annotations.
+ */
 public class MetricFactory {
 
     private final ChatClient.Builder chatClientBuilder;

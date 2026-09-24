@@ -8,6 +8,12 @@ import java.util.List;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.evaluation.Evaluator;
 
+/**
+ * Base class for metrics that delegate scoring to a Spring AI {@code Evaluator}, feeding it
+ * the test inputs, response, and optional retrieval context.
+ *
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/evaluation/Evaluator.html">Evaluator</a>
+ */
 public abstract class AbstractLLMJudgeMetric implements LLMMetric {
 
     private final String name;

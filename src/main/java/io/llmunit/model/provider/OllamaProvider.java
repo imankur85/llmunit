@@ -7,6 +7,11 @@ import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.ollama.api.OllamaModel;
 
+/**
+ * {@code LLMProvider} backed by a local Ollama server through Spring AI's {@code OllamaChatModel}.
+ *
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/ollama/OllamaChatModel.html">OllamaChatModel</a>
+ */
 public class OllamaProvider implements LLMProvider {
 
     private static final String DEFAULT_BASE_URL = "http://localhost:11434";

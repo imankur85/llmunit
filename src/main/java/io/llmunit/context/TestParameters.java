@@ -4,6 +4,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Ordered map of resolved parameter names to values, used for `{{placeholder}}` substitution.
+ */
 public class TestParameters {
 
     private final Map<String, Object> values = new LinkedHashMap<>();

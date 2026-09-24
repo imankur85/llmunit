@@ -19,6 +19,12 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.opentest4j.AssertionFailedError;
 
+/**
+ * JUnit Jupiter extension backing {@code @LLMTest}: registers inputs, resolves placeholder
+ * parameters, generates the actual output, and runs the evaluation assertions after each test.
+ *
+ * @see <a href="https://docs.spring.io/spring-ai/reference/api/testing.html">Spring AI testing</a>
+ */
 public class LLMTestExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
     private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(LLMTestExtension.class);

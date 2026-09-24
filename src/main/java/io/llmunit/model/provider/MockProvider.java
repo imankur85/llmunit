@@ -4,6 +4,10 @@ import io.llmunit.mock.MockResponseStore;
 import io.llmunit.model.LLMProvider;
 import org.springframework.ai.chat.model.ChatModel;
 
+/**
+ * {@code LLMProvider} that serves responses from a {@code MockResponseStore}, falling back to
+ * a live delegate provider and recording its responses for later replay.
+ */
 public class MockProvider implements LLMProvider {
 
     private final LLMProvider delegate;

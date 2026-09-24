@@ -7,6 +7,9 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+/**
+ * Container annotation holding the repeated `@Metric` annotations of a test method.
+ */
 public @interface Metrics {
 
     Metric[] value();

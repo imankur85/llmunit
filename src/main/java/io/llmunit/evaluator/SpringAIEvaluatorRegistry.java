@@ -10,6 +10,14 @@ import org.springframework.ai.chat.evaluation.FactCheckingEvaluator;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
 import org.springframework.ai.evaluation.Evaluator;
 
+/**
+ * Registry mapping {@code MetricEnum} values to the Spring AI or LLM-judge evaluators
+ * that score them, all built from a shared {@code ChatClient}.
+ *
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/chat/evaluation/RelevancyEvaluator.html">RelevancyEvaluator</a>
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/chat/evaluation/FactCheckingEvaluator.html">FactCheckingEvaluator</a>
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/evaluation/Evaluator.html">Evaluator</a>
+ */
 public class SpringAIEvaluatorRegistry {
 
     private static final String TOXICITY_CRITERIA =

@@ -7,6 +7,11 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
 import org.springframework.ai.document.Document;
 
+/**
+ * Scores how relevant the response is to the expected or explicitly provided context.
+ *
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/chat/evaluation/RelevancyEvaluator.html">RelevancyEvaluator</a>
+ */
 public class RelevancyMetric extends AbstractLLMJudgeMetric {
 
     private final String expectedContext;

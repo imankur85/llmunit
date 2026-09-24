@@ -8,6 +8,13 @@ import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.ai.evaluation.Evaluator;
 
+/**
+ * {@code Evaluator} that uses a second LLM as a judge: it scores how well a response
+ * satisfies free-form criteria and parses the verdict into a number in [0, 1].
+ *
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/evaluation/Evaluator.html">Evaluator</a>
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/chat/client/ChatClient.html">ChatClient</a>
+ */
 public class LLMJudgeEvaluator implements Evaluator {
 
     private static final Pattern SCORE = Pattern.compile("(\\d+(?:\\.\\d+)?)");

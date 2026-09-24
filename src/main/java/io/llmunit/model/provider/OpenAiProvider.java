@@ -6,6 +6,11 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 
+/**
+ * {@code LLMProvider} backed by an OpenAI client through Spring AI's {@code OpenAiChatModel}.
+ *
+ * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/openai/OpenAiChatModel.html">OpenAiChatModel</a>
+ */
 public class OpenAiProvider implements LLMProvider {
 
     private final ChatModel chatModel;

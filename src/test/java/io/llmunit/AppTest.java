@@ -6,6 +6,9 @@ import org.junit.jupiter.api.BeforeAll;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * Offline smoke test verifying that an `@LLMTest` runs without a live model.
+ */
 public class AppTest {
 
     @BeforeAll

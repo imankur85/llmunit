@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.ai.chat.client.ChatClient;
 
+/**
+ * Turns a test method's assertion and `@Metric` annotations into metrics and runs them,
+ * collecting the resulting evaluation results.
+ */
 public class LLMAssertionEvaluator {
 
     private final MetricFactory metricFactory;

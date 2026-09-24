@@ -4,6 +4,9 @@ import io.llmunit.evaluator.SpringAIEvaluatorRegistry;
 import io.llmunit.evaluator.LLMJudgeEvaluator;
 import org.springframework.ai.chat.client.ChatClient;
 
+/**
+ * Scores whether the response fulfills the expected functionality expressed by the query.
+ */
 public class FunctionalityMetric extends AbstractLLMJudgeMetric {
 
     private final String expected;

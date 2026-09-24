@@ -7,6 +7,11 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+/**
+ * Asserts that the LLM response fulfills the expected functionality for the test method.
+ *
+ * @see <a href="https://deepeval.com/docs/metrics-introduction">deepeval metrics</a>
+ */
 public @interface AssertFunctionality {
 
     String expected() default "";

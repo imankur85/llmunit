@@ -1,5 +1,9 @@
 package io.llmunit.context;
 
+/**
+ * Immutable outcome of a single metric evaluation: the score versus its threshold,
+ * human-readable feedback, and whether the metric passed.
+ */
 public class EvaluationResult {
 
     private final String metricName;

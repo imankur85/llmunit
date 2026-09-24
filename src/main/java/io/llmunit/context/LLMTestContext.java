@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Mutable per-invocation state for a single `@LLMTest`: the test method, its annotation,
+ * resolved parameters, input/expected/actual output, and the collected evaluation results.
+ */
 public class LLMTestContext {
 
     private final Method testMethod;
