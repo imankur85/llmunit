@@ -1,0 +1,23 @@
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Maven wrapper distribution artifacts (not needed when wrapper jar is absent)
+.mvn/wrapper/maven-wrapper.jar

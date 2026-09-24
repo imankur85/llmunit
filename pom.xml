@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.llmunit</groupId>
+  <artifactId>llmunit</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>llmunit</name>
+  <!-- FIXME change it to the project's website -->
+  <url>http://www.llmunit.com</url>
+
+	<properties>
+		<java.version>21</java.version>
+		<spring-ai.version>2.0.0</spring-ai.version>
+	</properties>
+
+  <dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-bom</artifactId>
+				<version>${spring-ai.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+  <dependencies>
+    <!-- JUnit 5 Extension API -->
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>6.1.1</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <!-- For JUnit extension implementation (AssertionFailedError, ParameterResolutionException) -->
+    <dependency>
+        <groupId>org.opentest4j</groupId>
+        <artifactId>opentest4j</artifactId>
+        <version>1.3.0</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-commons</artifactId>
+        <version>6.1.1</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <!-- JUnit Jupiter engine to run tests -->
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>6.1.1</version>
+        <scope>test</scope>
+    </dependency>
+
+    <!-- Spring AI Test / Evaluation support -->
+    <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-test</artifactId>
+    </dependency>
+
+    <!-- Ollama LLM provider -->
+    <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-ollama</artifactId>
+    </dependency>
+
+    <!-- OpenAI LLM provider -->
+    <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-openai</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.13.0</version>
+          <configuration>
+            <parameters>true</parameters>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.5.4</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>
