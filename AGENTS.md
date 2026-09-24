@@ -86,7 +86,10 @@ mvn clean install
 - `eval/` — `Eval`, `EvalInput`, `EvalResult`, `AbstractEval`, `AbstractJudgeEval`, `SpringAIEval`,
   and the built-in evals: `RelevanceEval`, `FactCheckingEval`, `ToxicityEval`, `PromptInjectionEval`, `BiasEval`.
 - `extension/` — `LLMTestExtension` (test template provider + trial aggregation), `LLMTestFilter`.
-- `mock/` — `EvalResultStore` (per-class record/replay store).
+- `mock/` — `EvalResultStore` + `RecordedEvaluation` (per-class record/replay store, Jackson 3 JSON).
+- `examples/food-scanner/` — standalone Spring Boot 4.1 project demonstrating `@SpringBootTest`
+  usage; NOT part of the reactor. Build it with `mvn -q install` at the root first, then
+  `mvn test` inside `examples/food-scanner`.
 
 ## Rules
 

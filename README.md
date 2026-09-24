@@ -31,7 +31,9 @@ An [evaluator](https://github.com/imankur85/llmunit/blob/main/USAGE.md#evaluator
 
 ## Getting started
 
-See [USAGE.md](USAGE.md) for detailed usage, examples, and configuration.
+See [USAGE.md](USAGE.md) for detailed usage, examples, and configuration, and
+[`examples/food-scanner`](examples/food-scanner) for a complete `@SpringBootTest` project that
+tests a real Spring service with these assertions.
 
 Quick example:
 
