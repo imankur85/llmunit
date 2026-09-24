@@ -95,37 +95,53 @@ class CustomEval implements Eval {
 
 ## Offline (record/replay) mode
 
-With `offline = true`, judge evaluations are replayed from a per-test-class `EvalResultStore` instead of calling a live model — deterministic, no model required.
+With `offline = true`, evaluations are replayed from recorded `EvalResult`s instead of calling a judge model — deterministic, no model required.
 
-Record results in one test (online), replay them in another (offline) within the same test class:
+Records live in a per-test-class `EvalResultStore`, keyed by eval name + query + output + context. The store can be seeded from a test body (same JVM) or loaded from a JSON golden file (across runs).
+
+### In-session seeding
 
 ```java
-@LLMTest
-void recordGoldenResults() {
-    // online run: evals are executed and results recorded automatically
-    assertThatLLM(service.run("q"))
-        .withQuery("q")
-        .passesEval(new RelevanceEval(judge));
-}
-
 @LLMTest(offline = true)
-void replayRecordedResults() {
-    assertThatLLM("canned output")
+void replaysSeededResult() {
+    EvalInput input = new EvalInput("q", "a", List.of());
+    LLMTestExtension.recorder().store().record(
+        "relevance", input, new EvalResult("relevance", 0.9, 0.5, "ok"));
+
+    assertThatLLM("a")
         .withQuery("q")
-        .passesEval(new RelevanceEval(judge)); // replayed from the store
+        .passesEval(new RelevanceEval(judge)); // replays the seeded result
 }
-```
-
-You can also seed the store manually from inside a test body:
-
-```java
-EvalInput input = new EvalInput("q", "a", List.of());
-LLMTestExtension.recorder().store().record(
-    EvalResultStore.key("relevance", input),
-    new EvalResult("relevance", 0.9, 0.5, "ok"));
 ```
 
 If an offline evaluation has no recorded result, it fails with a clear message.
+
+### Golden files (across runs)
+
+A recording run executes the evals with a live judge and persists the results as pretty JSON:
+
+```bash
+mvn test -Dllmunit.recordGolden=true     # recording run (needs a model)
+```
+
+Each test class writes `src/test/resources/llmunit-records/<ClassName>.json` (one JSON per eval). Review and commit the golden file. Later runs replay it without a model:
+
+```java
+@LLMTest(offline = true)
+void replaysGoldenFile() {
+    assertThatLLM("a").withQuery("q").passesEval(new RelevanceEval(judge));
+}
+```
+
+Offline tests load `<ClassName>.json` when it exists and fail with "no recorded result" for anything not in it — so a new query/context/version of the output surfaces as a test failure.
+
+### System properties
+
+| Property | Default | Effect |
+| --- | --- | --- |
+| `llmunit.offline` | annotation value | Forces every `@LLMTest` to replay (CI-friendly). |
+| `llmunit.recordGolden` | `false` | Saves the run's results to each class's JSON golden file. |
+| `llmunit.recordsDir` | `src/test/resources/llmunit-records` | Where golden files are read from and written to. |
 
 ## Non-determinism handling
 

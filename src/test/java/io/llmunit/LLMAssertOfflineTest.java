@@ -6,7 +6,6 @@ import io.llmunit.eval.EvalInput;
 import io.llmunit.eval.EvalResult;
 import io.llmunit.eval.RelevanceEval;
 import io.llmunit.extension.LLMTestExtension;
-import io.llmunit.mock.EvalResultStore;
 import io.llmunit.support.StubChatModel;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +22,7 @@ class LLMAssertOfflineTest {
     void seedAndReplayWithoutModel() {
         EvalInput input = new EvalInput("q1", "a", List.of());
         LLMTestExtension.recorder().store().record(
-            EvalResultStore.key("relevance", input), new EvalResult("relevance", 0.9, 0.5, "ok"));
+            "relevance", input, new EvalResult("relevance", 0.9, 0.5, "ok"));
 
         LLMAssert.assertThatLLM("a")
             .withQuery("q1")
@@ -40,7 +39,7 @@ class LLMAssertOfflineTest {
         if (i == 0) {
             EvalInput input = new EvalInput("q2", "a", List.of());
             LLMTestExtension.recorder().store().record(
-                EvalResultStore.key("relevance", input), new EvalResult("relevance", 0.9, 0.5, "ok"));
+                "relevance", input, new EvalResult("relevance", 0.9, 0.5, "ok"));
         }
 
         String query = i == 0 ? "q2" : "q3";

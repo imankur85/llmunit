@@ -3,7 +3,10 @@ package io.llmunit.extension;
 import io.llmunit.annotations.LLMTest;
 import io.llmunit.eval.EvalResult;
 import io.llmunit.mock.EvalResultStore;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
+import org.junit.platform.commons.JUnitException;
 import org.opentest4j.AssertionFailedError;
 
 /**
@@ -30,6 +34,11 @@ public class LLMTestExtension
         ExtensionContext.Namespace.create(LLMTestExtension.class);
     private static final String STORE_KEY = "llmunit.evals";
     private static final String STATS_PREFIX = "llmunit.stats.";
+
+    private static final String OFFLINE_PROPERTY = "llmunit.offline";
+    private static final String RECORD_GOLDEN_PROPERTY = "llmunit.recordGolden";
+    private static final String RECORDS_DIR_PROPERTY = "llmunit.recordsDir";
+    private static final String DEFAULT_RECORDS_DIR = "src/test/resources/llmunit-records";
 
     private static final ThreadLocal<TrialRecorder> RECORDER = new ThreadLocal<>();
 
@@ -68,7 +77,17 @@ public class LLMTestExtension
             return;
         }
         LLMTest annotation = method.getAnnotation(LLMTest.class);
-        RECORDER.set(new TrialRecorder(store(context), annotation.offline()));
+        boolean offline = effectiveOffline(annotation);
+        EvalResultStore store = store(context);
+        if (offline) {
+            Path file = recordsFile(context);
+            try {
+                store.loadIfAbsent(file);
+            } catch (IOException e) {
+                throw new JUnitException("llmunit: cannot load offline records from " + file, e);
+            }
+        }
+        RECORDER.set(new TrialRecorder(store, offline));
     }
 
     @Override
@@ -79,6 +98,18 @@ public class LLMTestExtension
         }
         TrialRecorder recorder = RECORDER.get();
         RECORDER.remove();
+
+        if (recordGoldenEnabled()) {
+            EvalResultStore store = store(context);
+            if (store.size() > 0) {
+                Path file = recordsFile(context);
+                try {
+                    store.save(file);
+                } catch (IOException e) {
+                    throw new JUnitException("llmunit: cannot save records to " + file, e);
+                }
+            }
+        }
 
         TrialStats stats = stats(context);
         if (recorder != null && recorder.allPassed()) {
@@ -104,6 +135,23 @@ public class LLMTestExtension
         ExtensionContext classContext = context.getParent().orElse(context);
         return classContext.getStore(NAMESPACE)
             .getOrComputeIfAbsent(STORE_KEY, k -> new EvalResultStore(), EvalResultStore.class);
+    }
+
+    private static boolean effectiveOffline(LLMTest annotation) {
+        String value = System.getProperty(OFFLINE_PROPERTY);
+        return value != null && !value.isBlank() ? Boolean.parseBoolean(value) : annotation.offline();
+    }
+
+    private static boolean recordGoldenEnabled() {
+        return Boolean.parseBoolean(System.getProperty(RECORD_GOLDEN_PROPERTY, "false"));
+    }
+
+    private static Path recordsFile(ExtensionContext context) {
+        String dir = System.getProperty(RECORDS_DIR_PROPERTY);
+        if (dir == null || dir.isBlank()) {
+            dir = DEFAULT_RECORDS_DIR;
+        }
+        return Path.of(dir, context.getRequiredTestClass().getSimpleName() + ".json");
     }
 
     private static TrialStats stats(ExtensionContext context) {

@@ -95,7 +95,7 @@ public final class LLMAssert {
         } else {
             EvalResult raw = eval.evaluate(input);
             result = new EvalResult(raw.metricName(), raw.score(), threshold, raw.feedback());
-            recorder.store().record(key, result);
+            recorder.store().record(eval.name(), input, result);
         }
         recorder.add(result);
         return this;

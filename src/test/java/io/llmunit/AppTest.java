@@ -6,7 +6,6 @@ import io.llmunit.eval.EvalInput;
 import io.llmunit.eval.EvalResult;
 import io.llmunit.eval.FactCheckingEval;
 import io.llmunit.extension.LLMTestExtension;
-import io.llmunit.mock.EvalResultStore;
 import io.llmunit.support.StubChatModel;
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class AppTest {
     void offlineTestReplaysWithoutLLM() {
         EvalInput input = new EvalInput("q", "a", List.of());
         LLMTestExtension.recorder().store().record(
-            EvalResultStore.key("fact_checking", input), new EvalResult("fact_checking", 1.0, 0.5, "ok"));
+            "fact_checking", input, new EvalResult("fact_checking", 1.0, 0.5, "ok"));
 
         LLMAssert.assertThatLLM("a")
             .withQuery("q")

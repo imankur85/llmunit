@@ -17,7 +17,9 @@ An [evaluator](https://github.com/imankur85/llmunit/blob/main/USAGE.md#evaluator
 - Built-in evaluators:
   - Quality: `RelevanceEval`, `FactCheckingEval`.
   - Guardrails: `ToxicityEval`, `PromptInjectionEval`, `BiasEval`.
-- Offline (record/replay) mode: recorded evaluation results are replayed, so tests run deterministically without a judge model.
+- Offline (record/replay) mode: evaluation results are captured once with a live judge into JSON
+  golden files (`src/test/resources/llmunit-records/`), then replayed deterministically on later runs
+  so CI needs no model.
 - No provider abstraction — create evals directly from a Spring AI autowired `ChatClient.Builder`.
 - No global mutable state: results are stored per test class, not in static singletons.
 

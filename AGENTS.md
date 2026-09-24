@@ -33,8 +33,9 @@ mvn clean install
 
 - The Maven wrapper (`./mvnw`) is broken. Always use `mvn` (installed via Homebrew).
 - Tests are JUnit Jupiter. They must pass without a live model: `JudgeEvalTest` uses a stub
-  `ChatModel` (`src/test/java/io/llmunit/support/StubChatModel`), and the offline tests replay
-  recorded results.
+  `ChatModel` (`src/test/java/io/llmunit/support/StubChatModel`), and the offline tests
+  (`LLMAssertOfflineTest`, `OfflineFileReplayTest`, `RecordGoldenTest`, `AppTest`) seed or
+  replay recorded results.
 
 ## Conventions
 
@@ -52,7 +53,12 @@ mvn clean install
 - `passesEval` never throws inside a trial (results are recorded); pass/fail decisions happen in the
   extension's aggregation.
 - Offline mode (`offline=true`): replay `EvalResult`s keyed by `EvalResultStore.key(name, EvalInput)`;
-  a lookup miss produces a failing result with a "no recorded result" message.
+  a lookup miss produces a failing result with a "no recorded result" message. Records can be
+  persisted/replayed as JSON golden files. System properties: `llmunit.offline` (force replay),
+  `llmunit.recordGolden` (save run results as pretty JSON), `llmunit.recordsDir` (default
+  `src/test/resources/llmunit-records`, file per class `<ClassName>.json`). `EvalResultStore` is
+  backed by Jackson 3 (`tools.jackson`, via Jackson 3.1.4 pulled in by spring-ai); records are Java
+  `record`s (`RecordedEvaluation`), so the Maven compiler must set `<release>21</release>`.
 - Guardrail evals (`AbstractJudgeEval`: toxicity, prompt-injection, bias) ask the judge for a violation
   probability in [0,1] and report `1 - violation` as the quality score, so higher is always better.
 - `assert` is a Java keyword — the assertion package is `io.llmunit.assertion` (NOT `assert`).
