@@ -20,9 +20,10 @@ An [evaluator](https://github.com/imankur85/llmunit/blob/main/USAGE.md#evaluator
     `ToxicityEval`, `PromptInjectionEval`, `BiasEval` — each reports `1 - violation` so higher is better.
 - Core is decoupled from Spring: `io.llmunit.core` (eval contract, record/replay store, assertions)
   has no Spring dependencies; `io.llmunit.eval` is the single Spring AI bridge hosting every eval.
-- Offline (record/replay) mode: evaluation results are captured once with a live judge into JSON
-  golden files (`src/test/resources/llmunit-records/`), then replayed deterministically on later runs
-  so CI needs no model.
+- Offline (record/replay) mode — llmunit's own layer, shown in detail in
+  [USAGE.md#offline-recordreplay-mode](USAGE.md#offline-recordreplay-mode): evaluation results
+  are captured once with a live judge into JSON golden files (`src/test/resources/llmunit-records/`),
+  then replayed deterministically on later runs so CI needs no model and stays deterministic.
 - No global mutable state: results are stored per test class, not in static singletons.
 
 ## Requirements
@@ -46,8 +47,8 @@ void testProductSuggestion() {
     assertThatLLM(answer)
         .withQuery("a cleaner alternative to Coca Cola")
         .withContext(retrievedProductDocs)
-        .passesEval(new FactCheckingEval(judge))
-        .passesEval(new RelevanceEval(judge));
+        .passesEval(new FactCheckingEval(builder))
+        .passesEval(new RelevanceEval(builder));
 }
 ```
 

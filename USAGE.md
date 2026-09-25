@@ -110,11 +110,52 @@ class CustomEval implements Eval {
 
 ## Offline (record/replay) mode
 
-With `offline = true`, evaluations are replayed from recorded `EvalResult`s instead of calling a judge model — deterministic, no model required.
+With `offline = true`, evaluations are replayed from recorded `EvalResult`s instead of calling a judge model — deterministic, no model required. Spring AI offers no such thing, so this is llmunit's own record/replay layer.
 
-Records live in a per-test-class `EvalResultStore`, keyed by eval name + query + output + context. The store can be seeded from a test body (same JVM) or loaded from a JSON golden file (across runs).
+### How it works
+
+Offline mode is a strict **key lookup**, not an evaluation. There is no scoring and no semantic comparison between the saved and the actual output.
+
+Each eval result is stored under a key built from its inputs:
+
+```
+<evalName> || <query> || <output> || <context entries joined with "|">
+```
+
+At replay time, `passesEval` builds that exact key from the *current* `query`, `output`, and `context`
+and looks it up in the record store (`io.llmunit.core.EvalResultStore`, backed by `ConcurrentHashMap`)
+— i.e. **byte-for-byte string equality**:
+
+- **Hit** — the current output matches a recorded one exactly (same query, same context, in the same order) — the recorded `EvalResult` is replayed **verbatim**: its score, threshold, and feedback are returned without recomputing anything from the actual output. Pass/fail is decided by the *recorded* score vs the *recorded* threshold.
+- **Miss** — the output differs by even a single character, or query/context changed — the eval is forced to a **failing** result with feedback `"llmunit: no recorded result for offline evaluation..."`.
+
+Consequences, deliberately:
+
+- **Determinism** — the same output replays the same result on every trial, which is what makes flaky/non-deterministic judge calls stable in CI.
+- **Regression check** — offline mode does *not* evaluate; it verifies your system still produces the exact output you recorded. Changed output = key miss = test failure.
+
+### Recording golden files (across runs)
+
+A recording run executes the evals with a live judge and persists the results as pretty JSON:
+
+```bash
+mvn test -Dllmunit.recordGolden=true     # recording run (needs a model)
+```
+
+Each test class writes `src/test/resources/llmunit-records/<ClassName>.json` (one JSON per eval per input). Review and commit the golden file. Later runs replay it without a model:
+
+```java
+@LLMTest(offline = true)
+void replaysGoldenFile() {
+    assertThatLLM("a").withQuery("q").passesEval(new RelevanceEval(builder));
+}
+```
+
+Offline tests load `<ClassName>.json` when it exists and fail with "no recorded result" for anything not in it — so a new query/context/version of the output surfaces as a test failure. When you intentionally change the system's output, re-record the goldens and commit the diff.
 
 ### In-session seeding
+
+A store can also be seeded from the test body itself in the same JVM (no file involved):
 
 ```java
 @LLMTest(offline = true)
@@ -129,28 +170,10 @@ void replaysSeededResult() {
 }
 ```
 
+The store is per test class (held in the extension store), shared across every trial and every
+method of that class, and `loadIfAbsent` reads the golden file once per store.
+
 *Note:* `EvalInput`, `EvalResult`, `EvalResultStore`, and `LLMAssert` live in `io.llmunit.core`.
-
-If an offline evaluation has no recorded result, it fails with a clear message.
-
-### Golden files (across runs)
-
-A recording run executes the evals with a live judge and persists the results as pretty JSON:
-
-```bash
-mvn test -Dllmunit.recordGolden=true     # recording run (needs a model)
-```
-
-Each test class writes `src/test/resources/llmunit-records/<ClassName>.json` (one JSON per eval). Review and commit the golden file. Later runs replay it without a model:
-
-```java
-@LLMTest(offline = true)
-void replaysGoldenFile() {
-    assertThatLLM("a").withQuery("q").passesEval(new RelevanceEval(builder));
-}
-```
-
-Offline tests load `<ClassName>.json` when it exists and fail with "no recorded result" for anything not in it — so a new query/context/version of the output surfaces as a test failure.
 
 ### System properties
 
