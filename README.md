@@ -1,6 +1,6 @@
 # llmunit
 
-`llmunit` is a Java library for unit testing large language models (LLMs). It is the Java port of [deepeval](https://deepeval.com/), built on JUnit Jupiter and Spring AI.
+`llmunit` is a Java library for unit testing large language models (LLMs), built on JUnit Jupiter and Spring AI.
 
 `llmunit` evaluates the output **your code** produces. The flow is:
 

@@ -4,7 +4,7 @@ Guidance for AI agents working in this repository.
 
 ## Project
 
-`llmunit` is a Java library for unit testing LLMs. It is a Java port of deepeval, built on JUnit Jupiter and Spring AI. The full spec lives in `PRODUCT.md`; docs for the current code are in `README.md` and `USAGE.md`.
+`llmunit` is a Java library for unit testing LLMs, built on JUnit Jupiter and Spring AI. The full spec lives in `PRODUCT.md`; docs for the current code are in `README.md` and `USAGE.md`.
 
 - Java 21, Maven build (`pom.xml`), Spring AI BOM 2.0.0, JUnit Jupiter API 6.1.1.
 - Package root: `io.llmunit`.
