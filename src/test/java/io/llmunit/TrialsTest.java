@@ -1,10 +1,10 @@
 package io.llmunit;
 
 import io.llmunit.annotations.LLMTest;
-import io.llmunit.assertion.LLMAssert;
-import io.llmunit.eval.Eval;
-import io.llmunit.eval.EvalInput;
-import io.llmunit.eval.EvalResult;
+import io.llmunit.core.Eval;
+import io.llmunit.core.EvalInput;
+import io.llmunit.core.EvalResult;
+import io.llmunit.core.LLMAssert;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 

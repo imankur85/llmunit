@@ -1,6 +1,5 @@
-package io.llmunit.mock;
+package io.llmunit.core;
 
-import io.llmunit.eval.EvalResult;
 import java.util.List;
 
 /**

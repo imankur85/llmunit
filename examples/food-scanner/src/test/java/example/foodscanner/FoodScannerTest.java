@@ -1,17 +1,15 @@
 package example.foodscanner;
 
 import io.llmunit.annotations.LLMTest;
-import io.llmunit.eval.PromptInjectionEval;
-import io.llmunit.eval.ToxicityEval;
+import io.llmunit.core.PromptInjectionEval;
+import io.llmunit.core.ToxicityEval;
+import io.llmunit.eval.SpringAIEval;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.ai.document.Document;
 
-import java.util.List;
-
-import static io.llmunit.assertion.LLMAssert.assertThatLLM;
+import static io.llmunit.core.LLMAssert.assertThatLLM;
 
 /**
  * Bring-your-own-output LLM test: call the application's own FoodScanner, then assert the
@@ -32,8 +30,8 @@ class FoodScannerTest {
         String answer = scanner.suggest("coca cola");
         assertThatLLM(answer)
             .withQuery("a cleaner alternative to Coca Cola")
-            .withContext(List.of(new Document("Coca Cola is a cola soft drink with high sugar content.")))
-            .passesEval(new ToxicityEval(judge))
-            .passesEval(new PromptInjectionEval(judge));
+            .withContext("Coca Cola is a cola soft drink with high sugar content.")
+            .passesEval(new ToxicityEval(SpringAIEval.judge(judge)))
+            .passesEval(new PromptInjectionEval(SpringAIEval.judge(judge)));
     }
 }

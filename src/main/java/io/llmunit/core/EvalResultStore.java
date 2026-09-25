@@ -1,7 +1,5 @@
-package io.llmunit.mock;
+package io.llmunit.core;
 
-import io.llmunit.eval.EvalInput;
-import io.llmunit.eval.EvalResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import org.springframework.ai.document.Document;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
@@ -19,9 +15,9 @@ import tools.jackson.databind.json.JsonMapper;
  * Per-test-class store of recorded evaluation results, keyed by eval name and input.
  * Replayed verbatim in offline mode so tests run without contacting a judge model.
  *
- * <p>Records can be persisted to and loaded from a JSON file (see {@link #save(Path)} and
- * {@link #loadIfAbsent(Path)}), so golden results recorded with a live judge can be replayed
- * deterministically on later runs without a model.
+ * <p>Spring-free: context is plain text. Records can be persisted to and loaded from a JSON
+ * file (see {@link #save(Path)} and {@link #loadIfAbsent(Path)}), so golden results recorded
+ * with a live judge can be replayed deterministically on later runs without a model.
  */
 public class EvalResultStore {
 
@@ -30,7 +26,7 @@ public class EvalResultStore {
 
     public EvalResultStore record(String evalName, EvalInput input, EvalResult result) {
         RecordedEvaluation rec = new RecordedEvaluation(
-            evalName, input.query(), input.output(), contextTexts(input),
+            evalName, input.query(), input.output(), input.context(),
             result.score(), result.threshold(), result.feedback());
         results.put(key(evalName, input), rec);
         return this;
@@ -69,10 +65,7 @@ public class EvalResultStore {
         List<RecordedEvaluation> list =
             mapper.readValue(Files.readString(path), new TypeReference<List<RecordedEvaluation>>() {});
         for (RecordedEvaluation rec : list) {
-            List<Document> docs = rec.context() == null
-                ? List.of()
-                : rec.context().stream().map(Document::new).toList();
-            EvalInput input = new EvalInput(rec.query(), rec.output(), docs);
+            EvalInput input = new EvalInput(rec.query(), rec.output(), rec.context());
             results.put(key(rec.name(), input), rec);
         }
     }
@@ -90,19 +83,11 @@ public class EvalResultStore {
     }
 
     public static String key(String evalName, EvalInput input) {
-        String context = input.context().stream()
-            .map(doc -> doc.getText() == null ? "" : doc.getText())
-            .collect(Collectors.joining("|"));
+        String context = String.join("|", input.context());
         return String.join("||", evalName, input.query(), input.output(), context);
     }
 
     private static JsonMapper objectMapper() {
         return JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build();
-    }
-
-    private static List<String> contextTexts(EvalInput input) {
-        return input.context().stream()
-            .map(doc -> doc.getText() == null ? "" : doc.getText())
-            .toList();
     }
 }

@@ -1,14 +1,9 @@
-package io.llmunit.assertion;
+package io.llmunit.core;
 
-import io.llmunit.eval.Eval;
-import io.llmunit.eval.EvalInput;
-import io.llmunit.eval.EvalResult;
 import io.llmunit.extension.LLMTestExtension;
 import io.llmunit.extension.LLMTestExtension.TrialRecorder;
-import io.llmunit.mock.EvalResultStore;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.ai.document.Document;
 
 /**
  * Fluent assertions for an LLM output, used inside an `@LLMTest` body.
@@ -20,6 +15,8 @@ import org.springframework.ai.document.Document;
  *     .passesEval(new ToxicityEval(judge));
  * }</pre>
  *
+ * <p>Spring-free: grounding context is plain text.
+ *
  * @see <a href="https://deepeval.com/docs/metrics-introduction">deepeval metrics</a>
  */
 public final class LLMAssert {
@@ -27,7 +24,7 @@ public final class LLMAssert {
     private final TrialRecorder recorder;
     private String query = "";
     private final String output;
-    private final List<Document> context = new ArrayList<>();
+    private final List<String> context = new ArrayList<>();
 
     private LLMAssert(TrialRecorder recorder, String output) {
         this.recorder = recorder;
@@ -52,25 +49,16 @@ public final class LLMAssert {
         return this;
     }
 
-    public LLMAssert withContext(List<Document> documents) {
-        if (documents != null) {
-            context.addAll(documents);
-        }
-        return this;
-    }
-
-    public LLMAssert withContext(Document... documents) {
-        if (documents != null) {
-            context.addAll(List.of(documents));
+    public LLMAssert withContext(List<String> texts) {
+        if (texts != null) {
+            context.addAll(texts);
         }
         return this;
     }
 
     public LLMAssert withContext(String... texts) {
         if (texts != null) {
-            for (String text : texts) {
-                context.add(new Document(text));
-            }
+            context.addAll(List.of(texts));
         }
         return this;
     }

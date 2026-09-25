@@ -1,4 +1,4 @@
-package io.llmunit.eval;
+package io.llmunit.core;
 
 /**
  * Immutable outcome of a single evaluation: the score versus its threshold, human-readable

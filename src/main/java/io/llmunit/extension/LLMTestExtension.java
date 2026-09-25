@@ -1,8 +1,8 @@
 package io.llmunit.extension;
 
 import io.llmunit.annotations.LLMTest;
-import io.llmunit.eval.EvalResult;
-import io.llmunit.mock.EvalResultStore;
+import io.llmunit.core.EvalResult;
+import io.llmunit.core.EvalResultStore;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;

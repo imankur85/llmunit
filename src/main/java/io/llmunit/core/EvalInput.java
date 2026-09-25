@@ -1,19 +1,18 @@
-package io.llmunit.eval;
+package io.llmunit.core;
 
 import java.util.List;
-import org.springframework.ai.document.Document;
 
 /**
  * The input to an {@link Eval}: the original query, the system's output, and any
- * grounding context the app used to produce it.
+ * grounding context the app used to produce it (as plain text).
  */
 public final class EvalInput {
 
     private final String query;
     private final String output;
-    private final List<Document> context;
+    private final List<String> context;
 
-    public EvalInput(String query, String output, List<Document> context) {
+    public EvalInput(String query, String output, List<String> context) {
         this.query = query == null ? "" : query;
         this.output = output == null ? "" : output;
         this.context = context == null ? List.of() : List.copyOf(context);
@@ -27,7 +26,7 @@ public final class EvalInput {
         return output;
     }
 
-    public List<Document> context() {
+    public List<String> context() {
         return context;
     }
 }

@@ -1,4 +1,4 @@
-package io.llmunit.eval;
+package io.llmunit.core;
 
 /**
  * An evaluator contract: maps an {@link EvalInput} (query, output, context) to an

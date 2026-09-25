@@ -1,18 +1,17 @@
 package io.llmunit;
 
 import io.llmunit.annotations.LLMTest;
-import io.llmunit.assertion.LLMAssert;
-import io.llmunit.eval.EvalInput;
-import io.llmunit.eval.EvalResult;
+import io.llmunit.core.EvalInput;
+import io.llmunit.core.EvalResult;
+import io.llmunit.core.EvalResultStore;
+import io.llmunit.core.LLMAssert;
 import io.llmunit.eval.RelevanceEval;
 import io.llmunit.extension.LLMTestExtension;
-import io.llmunit.mock.EvalResultStore;
 import io.llmunit.support.StubChatModel;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
-import org.springframework.ai.document.Document;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,7 +28,7 @@ class OfflineFileReplayTest {
     static void writeGoldenRecords() throws IOException {
         System.setProperty("llmunit.recordsDir", RECORDS_DIR);
         EvalResultStore store = new EvalResultStore();
-        EvalInput input = new EvalInput("flavor", "healthy drink", List.of(new Document("coke facts")));
+        EvalInput input = new EvalInput("flavor", "healthy drink", List.of("coke facts"));
         store.record("relevance", input, new EvalResult("relevance", 0.95, 0.5, "ok"));
         store.save(Path.of(RECORDS_DIR, OfflineFileReplayTest.class.getSimpleName() + ".json"));
     }

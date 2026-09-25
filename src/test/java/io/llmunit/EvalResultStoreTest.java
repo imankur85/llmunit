@@ -1,15 +1,14 @@
 package io.llmunit;
 
-import io.llmunit.eval.EvalInput;
-import io.llmunit.eval.EvalResult;
-import io.llmunit.mock.EvalResultStore;
+import io.llmunit.core.EvalInput;
+import io.llmunit.core.EvalResult;
+import io.llmunit.core.EvalResultStore;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.ai.document.Document;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,7 +22,7 @@ class EvalResultStoreTest {
     @Test
     void roundTripsThroughJson() throws IOException {
         EvalResultStore store = new EvalResultStore();
-        EvalInput input = new EvalInput("q", "a", List.of(new Document("ctx1")));
+        EvalInput input = new EvalInput("q", "a", List.of("ctx1"));
         store.record("relevance", input, new EvalResult("relevance", 0.75, 0.5, "ok"));
 
         Path file = tempDir.resolve("records.json");

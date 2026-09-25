@@ -1,9 +1,10 @@
 package io.llmunit;
 
 import io.llmunit.annotations.LLMTest;
-import io.llmunit.assertion.LLMAssert;
-import io.llmunit.eval.EvalInput;
-import io.llmunit.eval.EvalResult;
+import io.llmunit.core.EvalInput;
+import io.llmunit.core.EvalResult;
+import io.llmunit.core.EvalResultStore;
+import io.llmunit.core.LLMAssert;
 import io.llmunit.eval.RelevanceEval;
 import io.llmunit.extension.LLMTestExtension;
 import io.llmunit.support.StubChatModel;

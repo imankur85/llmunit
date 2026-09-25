@@ -12,9 +12,16 @@ An evaluator maps an `EvalInput` (query, output, context) to an `EvalResult` (pa
 
 ## Prerequisites
 
-`llmunit` requires Java 21+, Maven, and Spring AI 2.0.0.
+`llmunit` requires Java 21+, Maven, and (for the Spring AI evals) Spring AI 2.0.0.
 
-Provide a `ChatClient.Builder` bean in your Spring configuration. The judge evals are built from it:
+The library is split into a Spring-free core (`io.llmunit.core`) and a Spring AI bridge
+(`io.llmunit.eval`). The core contract — `Eval`, `EvalInput`, `EvalResult`, `LLMAssert`,
+guardrail evals, the record/replay store — has no Spring dependencies. Only `io.llmunit.eval`
+touches Spring: `SpringAIEval` (wrapping a Spring `Evaluator`), `RelevanceEval`,
+`FactCheckingEval`, and the `SpringAIEval.judge(ChatClient.Builder)` adapter that turns a
+Spring `ChatClient.Builder` into the core `Judge` used by guardrail evals.
+
+Provide a `ChatClient.Builder` bean in your Spring configuration:
 
 ```java
 @Bean
@@ -34,16 +41,18 @@ class ProductSuggestionTest {
     FoodScanner scanner;
 
     @Autowired
-    ChatClient.Builder judge;
+    ChatClient.Builder builder;
 
     @LLMTest(trials = 5, passRate = 0.8)
     void testProductSuggestion() {
+        Judge judge = SpringAIEval.judge(builder);
         String answer = scanner.suggest("coca cola");
         assertThatLLM(answer)
             .withQuery("a cleaner alternative to Coca Cola")
             .withContext(retrievedProductDocs)
-            .passesEval(new FactCheckingEval(judge))
-            .passesEval(new RelevanceEval(judge));
+            .passesEval(new FactCheckingEval(builder))
+            .passesEval(new RelevanceEval(builder))
+            .passesEval(new ToxicityEval(judge));
     }
 }
 ```
@@ -57,7 +66,7 @@ class ProductSuggestionTest {
 `assertThatLLM(output)` returns a `LLMAssert`:
 
 - `withQuery(String)` — the original user query.
-- `withContext(List<Document> | Document... | String...)` — grounding context (e.g. retrieved RAG docs).
+- `withContext(List<String> | String...)` — grounding context (e.g. retrieved RAG docs as plain text).
 - `passesEval(Eval)` — asserts the output passes the eval, using the eval's threshold.
 - `passesEval(Eval, double threshold)` — asserts with an explicit threshold.
 
@@ -65,22 +74,25 @@ The chain is fluent and can combine any number of evals.
 
 ## Evaluators
 
-### Quality
+### Quality (Spring AI bridge, `io.llmunit.eval`)
 
 - `RelevanceEval(ChatClient.Builder)` — how relevant the response is to the query/context.
 - `FactCheckingEval(ChatClient.Builder)` — whether the response stays faithful to the grounding context (covers faithfulness and hallucination).
 
-### Guardrails
+### Guardrails (Spring-free, `io.llmunit.core`)
 
-- `ToxicityEval(ChatClient.Builder)` — fails on offensive, harmful, hateful, or unsafe content.
-- `PromptInjectionEval(ChatClient.Builder)` — fails when the model followed an injected instruction.
-- `BiasEval(ChatClient.Builder)` — fails on harmful stereotypes/bias in the response.
+- `ToxicityEval(Judge)` — fails on offensive, harmful, hateful, or unsafe content.
+- `PromptInjectionEval(Judge)` — fails when the model followed an injected instruction.
+- `BiasEval(Judge)` — fails on harmful stereotypes/bias in the response.
 
-Guardrail evals report a **quality score**: the judge returns the probability of a violation and the eval reports `1 - violation`, so a higher score always means a safer response. The default threshold is `0.5`; each eval has a `(builder, threshold)` constructor overload.
+Build a `Judge` from Spring with `SpringAIEval.judge(ChatClient.Builder)`, or supply your own
+model adapter via the `io.llmunit.core.Judge` functional interface (`String respond(String prompt)`).
+
+Guardrail evals report a **quality score**: the judge returns the probability of a violation and the eval reports `1 - violation`, so a higher score always means a safer response. The default threshold is `0.5`; each eval has a `(judge, threshold)` constructor overload.
 
 ### Custom evaluators
 
-Implement `Eval` — one method maps an `EvalInput` to an `EvalResult`:
+Implement `io.llmunit.core.Eval` — one method maps an `EvalInput` to an `EvalResult`:
 
 ```java
 class CustomEval implements Eval {
@@ -110,9 +122,11 @@ void replaysSeededResult() {
 
     assertThatLLM("a")
         .withQuery("q")
-        .passesEval(new RelevanceEval(judge)); // replays the seeded result
+        .passesEval(new RelevanceEval(builder)); // replays the seeded result
 }
 ```
+
+*Note:* `EvalInput`, `EvalResult`, `EvalResultStore`, and `LLMAssert` live in `io.llmunit.core`.
 
 If an offline evaluation has no recorded result, it fails with a clear message.
 
@@ -129,7 +143,7 @@ Each test class writes `src/test/resources/llmunit-records/<ClassName>.json` (on
 ```java
 @LLMTest(offline = true)
 void replaysGoldenFile() {
-    assertThatLLM("a").withQuery("q").passesEval(new RelevanceEval(judge));
+    assertThatLLM("a").withQuery("q").passesEval(new RelevanceEval(builder));
 }
 ```
 
