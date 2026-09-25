@@ -17,12 +17,11 @@ Guidance for AI agents working in this repository.
 `llmunit` evaluates output the user's code produces. The user calls their own system to get a `String`, then asserts it via:
 
 ```java
-Judge judge = SpringAIEval.judge(chatClientBuilder);
 assertThatLLM(output)
     .withQuery(query)
     .withContext(documents) // List<String>
-    .passesEval(new RelevanceEval(chatClientBuilder)) // Spring bridge eval
-    .passesEval(new ToxicityEval(judge));             // core guardrail eval
+    .passesEval(new RelevanceEval(chatClientBuilder))
+    .passesEval(new ToxicityEval(chatClientBuilder));
 ```
 
 An `Eval` maps `EvalInput(query, output, context)` → `EvalResult(passed, score, feedback)`. That is the whole contract.
@@ -63,8 +62,10 @@ mvn clean install
   `src/test/resources/llmunit-records`, file per class `<ClassName>.json`). `EvalResultStore` is
   backed by Jackson 3 (`tools.jackson`, via Jackson 3.1.4 pulled in by spring-ai); records are Java
   `record`s (`RecordedEvaluation`), so the Maven compiler must set `<release>21</release>`.
-- Guardrail evals (`AbstractJudgeEval`: toxicity, prompt-injection, bias) ask the judge for a violation
-  probability in [0,1] and report `1 - violation` as the quality score, so higher is always better.
+- Guardrail metrics (toxicity, prompt-injection, bias) reuse Spring AI's `Evaluator` extension point:
+  `ViolationEvaluator` is a custom Spring `Evaluator` that prompts the model (via Spring's
+  `PromptTemplate`) for a violation probability in [0,1] and reports `1 - violation` as the quality
+  score, so higher is always better.
 - `assert` is a Java keyword — the assertion class is `io.llmunit.core.LLMAssert` (NOT an `assert` package).
 
 ## Key API facts (Spring AI 2.0.0)
@@ -86,13 +87,13 @@ mvn clean install
 ## Source layout
 
 - `annotations/` — `@LLMTest` (`trials`, `passRate`, `offline`).
-- `core/` — Spring-free: `Eval`, `EvalInput` (context as `List<String>`), `EvalResult`, `Judge`,
-  `AbstractEval`, `AbstractJudgeEval`, guardrail evals (`ToxicityEval`, `PromptInjectionEval`,
-  `BiasEval`), `EvalResultStore` + `RecordedEvaluation` (per-class record/replay store, Jackson 3 JSON),
-  `LLMAssert` (the fluent `assertThatLLM(...)` chain).
-- `eval/` — the only Spring AI bridge: `SpringAIEval` (wraps a Spring `Evaluator`; static
-  `judge(ChatClient.Builder)` → core `Judge`, `toDocuments(List<String>)`/`toTexts(...)`), plus the
-  bridge evals `RelevanceEval` and `FactCheckingEval`.
+- `core/` — Spring-free plumbing: `Eval`, `EvalInput` (context as `List<String>`), `EvalResult`,
+  `AbstractEval`, `EvalResultStore` + `RecordedEvaluation` (per-class record/replay store, Jackson 3
+  JSON), `LLMAssert` (the fluent `assertThatLLM(...)` chain).
+- `eval/` — the only Spring AI bridge, hosting every eval + its Spring `Evaluator` wiring:
+  `SpringAIEval` (wraps an `Evaluator`, static `toDocuments(List<String>)`/`toTexts(...)`),
+  `RelevanceEval`, `FactCheckingEval`, `ViolationEvaluator` + the guardrail metrics
+  `ToxicityEval`, `PromptInjectionEval`, `BiasEval`. All take a `ChatClient.Builder`.
 - `extension/` — `LLMTestExtension` (test template provider + trial aggregation), `LLMTestFilter`.
 - `examples/food-scanner/` — standalone Spring Boot 4.1 project demonstrating `@SpringBootTest`
   usage; NOT part of the reactor. Build it with `mvn -q install` at the root first, then

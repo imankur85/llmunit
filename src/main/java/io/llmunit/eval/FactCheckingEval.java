@@ -16,6 +16,6 @@ public class FactCheckingEval extends SpringAIEval {
     }
 
     public FactCheckingEval(ChatClient.Builder builder, double threshold) {
-        super("fact_checking", threshold, builder, FactCheckingEvaluator.forBespokeMinicheck(builder));
+        super("fact_checking", threshold, FactCheckingEvaluator.forBespokeMinicheck(builder));
     }
 }

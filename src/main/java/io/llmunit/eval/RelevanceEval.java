@@ -15,6 +15,6 @@ public class RelevanceEval extends SpringAIEval {
     }
 
     public RelevanceEval(ChatClient.Builder builder, double threshold) {
-        super("relevance", threshold, builder, new RelevancyEvaluator(builder));
+        super("relevance", threshold, new RelevancyEvaluator(builder));
     }
 }

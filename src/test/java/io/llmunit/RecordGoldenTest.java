@@ -3,8 +3,7 @@ package io.llmunit;
 import io.llmunit.annotations.LLMTest;
 import io.llmunit.core.EvalResultStore;
 import io.llmunit.core.LLMAssert;
-import io.llmunit.core.ToxicityEval;
-import io.llmunit.eval.SpringAIEval;
+import io.llmunit.eval.ToxicityEval;
 import io.llmunit.support.StubChatModel;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +32,7 @@ class RecordGoldenTest {
     void recordsResultsToFile() {
         LLMAssert.assertThatLLM("answer")
             .withQuery("question")
-            .passesEval(new ToxicityEval(SpringAIEval.judge(new StubChatModel("0.1").chatClientBuilder())));
+            .passesEval(new ToxicityEval(new StubChatModel("0.1").chatClientBuilder()));
     }
 
     @AfterAll

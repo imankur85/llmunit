@@ -15,11 +15,13 @@ An evaluator maps an `EvalInput` (query, output, context) to an `EvalResult` (pa
 `llmunit` requires Java 21+, Maven, and (for the Spring AI evals) Spring AI 2.0.0.
 
 The library is split into a Spring-free core (`io.llmunit.core`) and a Spring AI bridge
-(`io.llmunit.eval`). The core contract — `Eval`, `EvalInput`, `EvalResult`, `LLMAssert`,
-guardrail evals, the record/replay store — has no Spring dependencies. Only `io.llmunit.eval`
-touches Spring: `SpringAIEval` (wrapping a Spring `Evaluator`), `RelevanceEval`,
-`FactCheckingEval`, and the `SpringAIEval.judge(ChatClient.Builder)` adapter that turns a
-Spring `ChatClient.Builder` into the core `Judge` used by guardrail evals.
+(`io.llmunit.eval`). The core — `Eval`, `EvalInput`, `EvalResult`, `LLMAssert`, and the
+record/replay store — has no Spring dependencies. All evaluators live in `io.llmunit.eval` and
+run on top of Spring AI's evaluation machinery: the quality evals (`RelevanceEval`,
+`FactCheckingEval`) wrap Spring's stock evaluators, and the guardrails (`ToxicityEval`,
+`PromptInjectionEval`, `BiasEval`) are our metrics built on Spring's `Evaluator` + `PromptTemplate`
+extension point — a higher score always means a safer response. Every eval takes a single
+`ChatClient.Builder`.
 
 Provide a `ChatClient.Builder` bean in your Spring configuration:
 
@@ -45,14 +47,13 @@ class ProductSuggestionTest {
 
     @LLMTest(trials = 5, passRate = 0.8)
     void testProductSuggestion() {
-        Judge judge = SpringAIEval.judge(builder);
         String answer = scanner.suggest("coca cola");
         assertThatLLM(answer)
             .withQuery("a cleaner alternative to Coca Cola")
             .withContext(retrievedProductDocs)
             .passesEval(new FactCheckingEval(builder))
             .passesEval(new RelevanceEval(builder))
-            .passesEval(new ToxicityEval(judge));
+            .passesEval(new ToxicityEval(builder));
     }
 }
 ```
@@ -74,21 +75,23 @@ The chain is fluent and can combine any number of evals.
 
 ## Evaluators
 
-### Quality (Spring AI bridge, `io.llmunit.eval`)
+### Quality
 
 - `RelevanceEval(ChatClient.Builder)` — how relevant the response is to the query/context.
 - `FactCheckingEval(ChatClient.Builder)` — whether the response stays faithful to the grounding context (covers faithfulness and hallucination).
 
-### Guardrails (Spring-free, `io.llmunit.core`)
+Both wrap Spring AI's stock evaluators (see `RelevancyEvaluator`, `FactCheckingEvaluator`).
 
-- `ToxicityEval(Judge)` — fails on offensive, harmful, hateful, or unsafe content.
-- `PromptInjectionEval(Judge)` — fails when the model followed an injected instruction.
-- `BiasEval(Judge)` — fails on harmful stereotypes/bias in the response.
+### Guardrails
 
-Build a `Judge` from Spring with `SpringAIEval.judge(ChatClient.Builder)`, or supply your own
-model adapter via the `io.llmunit.core.Judge` functional interface (`String respond(String prompt)`).
+- `ToxicityEval(ChatClient.Builder)` — fails on offensive, harmful, hateful, or unsafe content.
+- `PromptInjectionEval(ChatClient.Builder)` — fails when the model followed an injected instruction.
+- `BiasEval(ChatClient.Builder)` — fails on harmful stereotypes/bias in the response.
 
-Guardrail evals report a **quality score**: the judge returns the probability of a violation and the eval reports `1 - violation`, so a higher score always means a safer response. The default threshold is `0.5`; each eval has a `(judge, threshold)` constructor overload.
+Guardrail evals are our metrics implemented on Spring AI's `Evaluator` + `PromptTemplate` extension
+point: the model returns the probability of a violation and the metric reports `1 - violation` as a
+**quality score**, so a higher score always means a safer response. The default threshold is `0.5`;
+each eval has a `(builder, threshold)` constructor overload.
 
 ### Custom evaluators
 

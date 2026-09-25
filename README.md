@@ -14,12 +14,12 @@ An [evaluator](https://github.com/imankur85/llmunit/blob/main/USAGE.md#evaluator
 
 - `@LLMTest` annotation with non-determinism handling: `trials` re-executes the test body, `passRate` tolerates flaky model output.
 - Fluent assertions: `assertThatLLM(output).withQuery(...).withContext(...).passesEval(...)`.
-- Built-in evaluators:
-  - Quality (Spring AI bridge): `RelevanceEval`, `FactCheckingEval`.
-  - Guardrails (Spring-free core): `ToxicityEval`, `PromptInjectionEval`, `BiasEval` driven by a
-    `Judge` (`String -> String`) wired to any model — `SpringAIEval.judge(ChatClient.Builder)` is the Spring adapter.
-- Core is decoupled from Spring: `io.llmunit.core` (eval contract, guardrails, record/replay store,
-  assertions) has no Spring dependencies; `io.llmunit.eval` is the single Spring AI bridge.
+- Built-in evaluators, all taking a single `ChatClient.Builder`:
+  - Quality (wraps Spring's stock evaluators): `RelevanceEval`, `FactCheckingEval`.
+  - Guardrails (our metrics on Spring AI's `Evaluator` + `PromptTemplate` extension point):
+    `ToxicityEval`, `PromptInjectionEval`, `BiasEval` — each reports `1 - violation` so higher is better.
+- Core is decoupled from Spring: `io.llmunit.core` (eval contract, record/replay store, assertions)
+  has no Spring dependencies; `io.llmunit.eval` is the single Spring AI bridge hosting every eval.
 - Offline (record/replay) mode: evaluation results are captured once with a live judge into JSON
   golden files (`src/test/resources/llmunit-records/`), then replayed deterministically on later runs
   so CI needs no model.

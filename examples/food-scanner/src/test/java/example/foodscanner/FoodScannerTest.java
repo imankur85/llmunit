@@ -1,9 +1,8 @@
 package example.foodscanner;
 
 import io.llmunit.annotations.LLMTest;
-import io.llmunit.core.PromptInjectionEval;
-import io.llmunit.core.ToxicityEval;
-import io.llmunit.eval.SpringAIEval;
+import io.llmunit.eval.PromptInjectionEval;
+import io.llmunit.eval.ToxicityEval;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ class FoodScannerTest {
         assertThatLLM(answer)
             .withQuery("a cleaner alternative to Coca Cola")
             .withContext("Coca Cola is a cola soft drink with high sugar content.")
-            .passesEval(new ToxicityEval(SpringAIEval.judge(judge)))
-            .passesEval(new PromptInjectionEval(SpringAIEval.judge(judge)));
+            .passesEval(new ToxicityEval(judge))
+            .passesEval(new PromptInjectionEval(judge));
     }
 }

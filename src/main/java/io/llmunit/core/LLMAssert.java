@@ -11,8 +11,8 @@ import java.util.List;
  * assertThatLLM(answer)
  *     .withQuery(query)
  *     .withContext(documents)
- *     .passesEval(new RelevanceEval(judge))
- *     .passesEval(new ToxicityEval(judge));
+ *     .passesEval(new RelevanceEval(chatClientBuilder))
+ *     .passesEval(new ToxicityEval(chatClientBuilder));
  * }</pre>
  *
  * <p>Spring-free: grounding context is plain text.
