@@ -87,11 +87,11 @@ mvn clean install
 ## Source layout
 
 - `annotations/` — `@LLMTest` (`trials`, `passRate`, `offline`).
-- `core/` — Spring-free plumbing: `Eval`, `EvalInput` (context as `List<String>`), `EvalResult`,
-  `AbstractEval`, `EvalResultStore` + `RecordedEvaluation` (per-class record/replay store, Jackson 3
+- `core/` — Spring-free plumbing: `Eval` (contract), `EvalInput` (context as `List<String>`),
+  `EvalResult`, `EvalResultStore` + `RecordedEvaluation` (per-class record/replay store, Jackson 3
   JSON), `LLMAssert` (the fluent `assertThatLLM(...)` chain).
 - `eval/` — the only Spring AI bridge, hosting every eval + its Spring `Evaluator` wiring:
-  `SpringAIEval` (wraps an `Evaluator`, static `toDocuments(List<String>)`/`toTexts(...)`),
+  `SpringAIEval` (implements `Eval`, wraps an `Evaluator`, static `toDocuments(List<String>)`/`toTexts(...)`),
   `RelevanceEval`, `FactCheckingEval`, `ViolationEvaluator` + the guardrail metrics
   `ToxicityEval`, `PromptInjectionEval`, `BiasEval`. All take a `ChatClient.Builder`.
 - `extension/` — `LLMTestExtension` (test template provider + trial aggregation), `LLMTestFilter`.

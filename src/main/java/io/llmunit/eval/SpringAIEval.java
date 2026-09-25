@@ -1,6 +1,5 @@
 package io.llmunit.eval;
 
-import io.llmunit.core.AbstractEval;
 import io.llmunit.core.Eval;
 import io.llmunit.core.EvalInput;
 import io.llmunit.core.EvalResult;
@@ -11,21 +10,35 @@ import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.ai.evaluation.Evaluator;
 
 /**
- * Base for every Spring AI backed eval: wraps a Spring AI {@link Evaluator} as a core {@link Eval}
- * and converts the core's plain-text context into the Spring AI {@link Document}s the evaluator
- * expects. This is the single place the library touches Spring AI evaluation machinery.
+ * Base for every Spring AI backed eval: holds the metric name and pass threshold, wraps a Spring AI
+ * {@link Evaluator} as a core {@link Eval}, and converts the core's plain-text context into the Spring
+ * AI {@link Document}s the evaluator expects. This is the single place the library touches Spring AI
+ * evaluation machinery.
  *
  * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/evaluation/Evaluator.html">Evaluator</a>
  * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/evaluation/EvaluationRequest.html">EvaluationRequest</a>
  * @see <a href="https://docs.spring.io/spring-ai/docs/2.0.0/api/org/springframework/ai/evaluation/EvaluationResponse.html">EvaluationResponse</a>
  */
-public abstract class SpringAIEval extends AbstractEval {
+public abstract class SpringAIEval implements Eval {
 
+    private final String name;
+    private final double threshold;
     private final Evaluator evaluator;
 
     protected SpringAIEval(String name, double threshold, Evaluator evaluator) {
-        super(name, threshold);
+        this.name = name == null ? "" : name;
+        this.threshold = threshold;
         this.evaluator = evaluator;
+    }
+
+    @Override
+    public String name() {
+        return name;
+    }
+
+    @Override
+    public double threshold() {
+        return threshold;
     }
 
     @Override
