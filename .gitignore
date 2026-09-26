@@ -11,6 +11,7 @@ target/
 *.ipr
 *.iws
 .vscode/
+references
 
 # OS
 .DS_Store

@@ -1,5 +1,4 @@
 llmunit is a library for unit testing large language models similar to JUnit.
-It is the Java version of deepeval (https://deepeval.com/).
 It makes use of SprinAI's test framework and Jupiter's test runner.
 https://docs.spring.io/spring-ai/reference/api/testing.html
 
