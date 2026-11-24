@@ -11,7 +11,7 @@ This mirrors the canonical usage (see `references/suggestions.md`):
 @ExtendWith(LLMTestExtension.class)
 class FoodScannerTest {
     @Autowired FoodScanner scanner;
-    @Autowired ChatClient.Builder judge;
+    @Autowired LLMJudge judge;
 
     @LLMTest(trials = 5, passRate = 0.8) // 4 out of 5 calls must pass
     void testFoodScanner() {
@@ -19,11 +19,15 @@ class FoodScannerTest {
         assertThatLLM(answer)
             .withQuery("a cleaner alternative to Coca Cola")
             .withContext(retrievedProductDocs)
-            .passesEval(new FactCheckingEval(judge))
-            .passesEval(new RelevanceEval(judge));
+            .passesEval(new FactCheckingEval(judge.builder()))
+            .passesEval(new RelevanceEval(judge.builder()));
     }
 }
 ```
+
+`LLMJudge` is auto-configured from the application's `ChatClient.Builder`. Set
+`llmunit.judge.model` to run the judge on a different model; leave it unset to reuse the
+application's model.
 
 ## Prerequisites
 

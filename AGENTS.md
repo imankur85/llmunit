@@ -34,7 +34,7 @@ mvn -q test     # quiet (preferred)
 mvn clean install
 ```
 
-- The Maven wrapper (`./mvnw`) is broken. Always use `mvn` (installed via Homebrew).
+- The Maven wrapper (`./mvnw`) is self-contained: it downloads the wrapper jar and Maven distribution on first use.
 - Tests are JUnit Jupiter. They must pass without a live model: `JudgeEvalTest` uses a stub
   `ChatModel` (`src/test/java/io/llmunit/support/StubChatModel`), and the offline tests
   (`LLMAssertOfflineTest`, `OfflineFileReplayTest`, `RecordGoldenTest`, `AppTest`) seed or
@@ -79,10 +79,20 @@ mvn clean install
 - `Document(String)` lives in `spring-ai-commons` (`org.springframework.ai.document.Document`).
 - Spring AI evals: `org.springframework.ai.chat.evaluation.{RelevancyEvaluator, FactCheckingEvaluator}`;
   `RelevancyEvaluator(ChatClient.Builder)`, `FactCheckingEvaluator.forBespokeMinicheck(ChatClient.Builder)`.
+  In 2.0 the stock `FactCheckingEvaluator` uses the 3-arg `EvaluationResponse` (score `0`) and both
+  stock evaluators return empty feedback, so llmunit uses `VerdictJudgeEvaluator` subclasses
+  (`FactCheckingJudgeEvaluator`, `RelevanceJudgeEvaluator`) with the same prompts, a 1/0 score, and
+  `llmunit.judgeRequest`/`llmunit.judgeResponse` metadata rendered by `SpringAIEval` in feedback.
 - `EvaluationRequest(String, List<Document>, String)`, `EvaluationResponse(boolean, float, String, Map)`.
 - In 2.0 there is no `AiMessage`; assistant output is built with `AssistantMessage.builder().content(...)`
   wrapped in `Generation`, then `ChatResponse(List<Generation>)` (see `StubChatModel`).
 - A stub `ChatModel` only needs to implement `call(Prompt)`; every other method has a default in 2.0.
+- `LLMJudge` reuses the application's `ChatClient.Builder`; `llmunit.judge.model` optionally overrides
+  the model via `builder.clone().defaultOptions(ChatOptions.builder().model(...))`, preserving the
+  provider and credentials. When unset/blank it delegates to the app builder unchanged.
+- Spring Boot autoconfiguration lives in `io.llmunit.eval.LLMUnitJudgeAutoConfiguration`, registered in
+  `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`; it is backed by
+  the optional `spring-boot-autoconfigure` dependency and requires a single `ChatClient.Builder` bean.
 
 ## Source layout
 
@@ -91,9 +101,11 @@ mvn clean install
   `EvalResult`, `EvalResultStore` + `RecordedEvaluation` (per-class record/replay store, Jackson 3
   JSON), `LLMAssert` (the fluent `assertThatLLM(...)` chain).
 - `eval/` — the only Spring AI bridge, hosting every eval + its Spring `Evaluator` wiring:
-  `SpringAIEval` (implements `Eval`, wraps an `Evaluator`, static `toDocuments(List<String>)`/`toTexts(...)`),
-  `RelevanceEval`, `FactCheckingEval`, `ViolationEvaluator` + the guardrail metrics
-  `ToxicityEval`, `PromptInjectionEval`, `BiasEval`. All take a `ChatClient.Builder`.
+  `SpringAIEval` (implements `Eval`, wraps an `Evaluator`, static `toDocuments(List<String>)`/`toTexts(...)`,
+  adds failure diagnostics), `VerdictJudgeEvaluator` + `RelevanceEval`/`FactCheckingEval`
+  (judge verdict evals that keep the exchange in feedback), `ViolationEvaluator` + the guardrail
+  metrics `ToxicityEval`, `PromptInjectionEval`, `BiasEval`. All take a `ChatClient.Builder`.
+  `LLMJudge` (optional judge-model override) and `LLMUnitJudgeAutoConfiguration` also live here.
 - `extension/` — `LLMTestExtension` (test template provider + trial aggregation), `LLMTestFilter`.
 - `examples/food-scanner/` — standalone Spring Boot 4.1 project demonstrating `@SpringBootTest`
   usage; NOT part of the reactor. Build it with `mvn -q install` at the root first, then

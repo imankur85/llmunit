@@ -31,6 +31,11 @@ class GuardrailEvalTest {
         EvalResult result = eval.evaluate(INPUT);
         assertFalse(result.passed());
         assertEquals(0.1, result.score(), 1e-6);
+        assertTrue(result.feedback().contains("judge request:"));
+        assertTrue(result.feedback().contains("judge response:"));
+        assertTrue(result.feedback().contains("0.9"));
+        assertTrue(result.feedback().contains("query: q"));
+        assertTrue(result.feedback().contains("output: a"));
     }
 
     @Test

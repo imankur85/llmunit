@@ -18,9 +18,9 @@ The library is split into a Spring-free core (`io.llmunit.core`) and a Spring AI
 (`io.llmunit.eval`). The core — `Eval`, `EvalInput`, `EvalResult`, `LLMAssert`, and the
 record/replay store — has no Spring dependencies. All evaluators live in `io.llmunit.eval` and
 run on top of Spring AI's evaluation machinery: the quality evals (`RelevanceEval`,
-`FactCheckingEval`) wrap Spring's stock evaluators, and the guardrails (`ToxicityEval`,
-`PromptInjectionEval`, `BiasEval`) are our metrics built on Spring's `Evaluator` + `PromptTemplate`
-extension point — a higher score always means a safer response. Every eval takes a single
+`FactCheckingEval`) and guardrails (`ToxicityEval`, `PromptInjectionEval`, `BiasEval`) are built on
+Spring's `Evaluator` + `PromptTemplate` extension point and keep the judge exchange in their
+feedback — a higher score always means a better response. Every eval takes a single
 `ChatClient.Builder`.
 
 Provide a `ChatClient.Builder` bean in your Spring configuration:
@@ -30,6 +30,38 @@ Provide a `ChatClient.Builder` bean in your Spring configuration:
 ChatClient.Builder chatClientBuilder(ChatModel chatModel) {
     return ChatClient.builder(chatModel);
 }
+```
+
+## Judge model
+
+The evals call an LLM judge. By default the judge reuses the application's AI model: Spring Boot
+auto-configures an `LLMJudge` from the application's `ChatClient.Builder`, and the evals receive
+`judge.builder()`.
+
+To run the judge on a different model, set the optional property:
+
+```yaml
+llmunit:
+  judge:
+    model: gpt-4.1-mini
+```
+
+Leave it unset (or blank) and the application's model is used. The override reuses the application's
+provider, credentials, and other defaults, changing only the model id. Auto-configuration requires
+exactly one `ChatClient.Builder` bean; define a `@Primary` builder if you have several.
+
+```java
+@Autowired LLMJudge judge;
+
+assertThatLLM(answer)
+    .passesEval(new RelevanceEval(judge.builder()))
+    .passesEval(new ToxicityEval(judge.builder()));
+```
+
+Outside Spring Boot, build the judge directly:
+
+```java
+LLMJudge judge = LLMJudge.using(builder, "gpt-4.1-mini");
 ```
 
 ## Writing a test
@@ -80,7 +112,9 @@ The chain is fluent and can combine any number of evals.
 - `RelevanceEval(ChatClient.Builder)` — how relevant the response is to the query/context.
 - `FactCheckingEval(ChatClient.Builder)` — whether the response stays faithful to the grounding context (covers faithfulness and hallucination).
 
-Both wrap Spring AI's stock evaluators (see `RelevancyEvaluator`, `FactCheckingEvaluator`).
+Both run on Spring AI's `Evaluator` contract with judge prompts modeled on Spring AI's
+`RelevancyEvaluator` and `FactCheckingEvaluator`. Unlike the stock evaluators, they score the verdict
+(`yes` = 1, otherwise 0) and keep the judge prompt/response in the result feedback.
 
 ### Guardrails
 
@@ -106,6 +140,27 @@ class CustomEval implements Eval {
         return new EvalResult(name(), score, threshold(), "details");
     }
 }
+```
+
+## Failure diagnostics
+
+A failed eval records why it failed in `EvalResult.feedback()`, which the `@LLMTest` failure message
+reports. Built-in evals always include the query, output, and context; when the judge exchange is
+available it is included too:
+
+```
+llmunit: fact_checking evaluation
+judge request:
+Document:
+Coca Cola is a cola soft drink with high sugar content.
+
+Claim:
+Coca Cola is sugar free.
+judge response:
+no
+query: a cleaner alternative to Coca Cola
+output: Coca Cola is sugar free.
+context: Coca Cola is a cola soft drink with high sugar content.
 ```
 
 ## Offline (record/replay) mode
