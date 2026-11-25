@@ -15,9 +15,14 @@ An [evaluator](https://github.com/imankur85/llmunit/blob/main/USAGE.md#evaluator
 - `@LLMTest` annotation with non-determinism handling: `trials` re-executes the test body, `passRate` tolerates flaky model output.
 - Fluent assertions: `assertThatLLM(output).withQuery(...).withContext(...).passesEval(...)`.
 - Built-in evaluators, all taking a single `ChatClient.Builder`:
-  - Quality (wraps Spring's stock evaluators): `RelevanceEval`, `FactCheckingEval`.
+  - Quality (Spring AI's `Evaluator` contract): `RelevanceEval`, `FactCheckingEval` — both keep the
+    judge prompt/response in their feedback.
   - Guardrails (our metrics on Spring AI's `Evaluator` + `PromptTemplate` extension point):
     `ToxicityEval`, `PromptInjectionEval`, `BiasEval` — each reports `1 - violation` so higher is better.
+- Failed evals report the judge request/response (when available) plus the query, output, and context,
+  so a failing test says why instead of just failing.
+- Optional judge model override: set `llmunit.judge.model` and the Spring Boot auto-configured
+  `LLMJudge` runs evals on that model; when unset it reuses the application's model.
 - Core is decoupled from Spring: `io.llmunit.core` (eval contract, record/replay store, assertions)
   has no Spring dependencies; `io.llmunit.eval` is the single Spring AI bridge hosting every eval.
 - Offline (record/replay) mode — llmunit's own layer, shown in detail in
@@ -47,8 +52,8 @@ void testProductSuggestion() {
     assertThatLLM(answer)
         .withQuery("a cleaner alternative to Coca Cola")
         .withContext(retrievedProductDocs)
-        .passesEval(new FactCheckingEval(builder))
-        .passesEval(new RelevanceEval(builder));
+        .passesEval(new FactCheckingEval(judge.builder()))
+        .passesEval(new RelevanceEval(judge.builder()));
 }
 ```
 

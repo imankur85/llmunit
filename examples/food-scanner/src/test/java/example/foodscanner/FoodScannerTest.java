@@ -1,10 +1,10 @@
 package example.foodscanner;
 
 import io.llmunit.annotations.LLMTest;
+import io.llmunit.eval.LLMJudge;
 import io.llmunit.eval.PromptInjectionEval;
 import io.llmunit.eval.ToxicityEval;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -22,7 +22,7 @@ class FoodScannerTest {
     FoodScanner scanner;
 
     @Autowired
-    ChatClient.Builder judge;
+    LLMJudge judge;
 
     @LLMTest(trials = 5, passRate = 0.8)
     void testFoodScanner() {
@@ -30,7 +30,7 @@ class FoodScannerTest {
         assertThatLLM(answer)
             .withQuery("a cleaner alternative to Coca Cola")
             .withContext("Coca Cola is a cola soft drink with high sugar content.")
-            .passesEval(new ToxicityEval(judge))
-            .passesEval(new PromptInjectionEval(judge));
+            .passesEval(new ToxicityEval(judge.builder()))
+            .passesEval(new PromptInjectionEval(judge.builder()));
     }
 }

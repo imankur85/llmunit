@@ -1,5 +1,6 @@
 package io.llmunit.eval;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,8 +48,10 @@ class ViolationEvaluator implements Evaluator {
 
         double violation = parseScore(verdict);
         double quality = 1.0 - violation;
-        return new EvaluationResponse(quality >= threshold, (float) quality,
-            verdict == null ? "" : verdict.strip(), Map.of("violation", violation));
+        String verdictText = verdict == null ? "" : verdict.strip();
+        Map<String, Object> metadata = new HashMap<>(SpringAIEval.judgeExchange(prompt.getContents(), verdictText));
+        metadata.put("violation", violation);
+        return new EvaluationResponse(quality >= threshold, (float) quality, verdictText, metadata);
     }
 
     private static double parseScore(String verdict) {

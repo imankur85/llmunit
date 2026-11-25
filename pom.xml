@@ -65,6 +65,14 @@
         <groupId>org.springframework.ai</groupId>
         <artifactId>spring-ai-test</artifactId>
     </dependency>
+
+    <!-- Optional: judge auto-configuration for Spring Boot applications -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-autoconfigure</artifactId>
+        <version>4.1.0</version>
+        <optional>true</optional>
+    </dependency>
   </dependencies>
 
   <build>
